@@ -1,7 +1,8 @@
 library(stringr)
+library(dplyr)
 setwd('C:/Coffee and Weather Code/data')
 
-# DESCRIPTION ----------------------------------------------------------------------------------------
+# # DESCRIPTION --------------------------------------------------------------------------------------
 # ~ ~ ~ ~ ~ ~ 
 # Going over the 448 daily sales files produced by the cash register, this project's first script:
 #
@@ -19,7 +20,7 @@ setwd('C:/Coffee and Weather Code/data')
 # next stage of the project: building data frames of items ordered during each day.
 #            ~ ~ ~
 
-# FUNCTION: READ & WRANGLE A FILE, DUMP UNIQUE MENU ITEMS & MODIFIERS INTO SEPARATE CSV --------------
+# # FUNCTION: READ & WRANGLE A FILE, DUMP UNIQUE MENU ITEMS & MODIFIERS INTO SEPARATE CSV ------------
 runFile <- function(x) {
 
 # File names are standard and contain the date. Function will be fed the sequence of dates 
@@ -27,7 +28,7 @@ runFile <- function(x) {
   
 dFile <- readLines(paste0("Master-", x, "_000000-", x, "_235959.csv"), encoding="UTF-8")
 
-# WRANGLING ==========================================================================================
+# = WRANGLING ========================================================================================
 
 # head(dFile) via console showed file contains escape backslashes with quotes all over; removing:
 
@@ -124,7 +125,7 @@ dFile <- unname(sapply(dFile, function(x) {
   gsub("^([^,]*,)|,", "\\1", x)
 }))
 
-# TESTING   ==========================================================================================
+# = TESTING ==========================================================================================
 
 # Identifying order numbers and order contents separately via regex (non-sequentials are gone, 
 # only have to include compeleted, cancelled, and refunded orders):
@@ -154,7 +155,7 @@ if (length(itemNums)!=length(itemDescs))
 { stop("Not all item descriptions have corresponding identification numbers in ",
        fileDate," (dateSequence[", match(format(fileDate,"%Y%m%d"),dateSequence), "])") }
 
-# EXPORTING  =========================================================================================
+# = EXPORTING ========================================================================================
 
 # Preparing a data frame with unique item IDs and descriptions from this file:
 
@@ -192,13 +193,19 @@ write.csv(bothItemsDFs, file = "0-all-unique-items.csv")
 # FINAL OUTPUT: MAKING A FILE CONTAINING UNIQUE MENU ITEMS & MODIFIERS ACROSS 448 FILES --------------
 
  output <- read.csv("0-all-unique-items.csv")
- output <- unique(output[-1])
- output <- output[order(output$ID),]
- rownames(output) <- c()
- 
- write.csv(output, file="menu-items-and-modifiers.csv", row.names = FALSE)
 
-# This makes an 8KB file with 279 menu items & modifiers.
+ output <- output %>% 
+   group_by(ID, Description) %>% 
+   summarize(Frequency=n())
+ 
+ write.csv(unique(output), "0-menu-items-and-modifiers.csv", row.names=FALSE)
+
+# This makes an 8KB file with 279 menu items & modifiers. 
+#
+# The file also includes frequencies for how often items feature in the data (1 under "Frequency" 
+# would mean the item was sold on one day). Frequencies will be helpful for understanding duplicate 
+# items (typos in the cash register system--there are a few--or promotional items). 
+#
 # The file will be edited manually to make a distinction between menu items and menu item modifiers.
 # Resultant data frame will be used to build a proper data frame of items ordered.
  
