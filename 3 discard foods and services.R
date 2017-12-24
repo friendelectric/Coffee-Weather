@@ -63,7 +63,7 @@ dropNonDrinks <- function(orderString) {
   
   Items <- unlist(strsplit(orderString, "\\{"))
   
-  keep <- unlist(sapply(Items, is.drink))
+  keep <- sapply(Items, is.drink)
   
   outputString <- paste0(Items[keep], "{", collapse='')
   
