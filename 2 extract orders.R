@@ -71,7 +71,9 @@ runFile <- function(x) {
     # elements within dFile that contain order numbers, and either creates a new row if it encounters
     # an order number, or, if dFile element contains menu items and modifiers, continues to append them 
     # to a previously recorded order.
-    #
+    
+    orderPattern <- "(^[[:digit:]]+$)|(^[[:digit:]]+ \\<Cancelled\\> $)|(^[[:digit:]]+ \\<Refunded\\> $)"
+    
     # This is all recorded in daysOrders, a data frame of the day's orders. While data types for columns
     # are not defined explicitly in the script below, here is daysOrders' projected structure:
     #
@@ -89,15 +91,13 @@ runFile <- function(x) {
     #                 | which was quickly verified by running a grepWin search on the folder w/ the data)
     #         ~ ~ ~
     
-    orderPattern <- "(^[[:digit:]]+$)|(^[[:digit:]]+ \\<Cancelled\\> $)|(^[[:digit:]]+ \\<Refunded\\> $)"
-    
     daysOrders <- data.frame(matrix(ncol=4,nrow=0))
     colnames(daysOrders) <- c("orderNum","orderTime","discardLater","orderContents")
     
-    # See block of comments above for an explanation of the why and how of the following "for" loop.
-    
     i <- 1
     orderCount <- 1
+    
+    # See block of comments above for an explanation of the why and how of the following "for" loop.
     
     for(i in 1:length(dFile)) {
       
