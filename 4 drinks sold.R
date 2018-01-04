@@ -111,8 +111,10 @@ Drinks <- rbindlist(apply(Orders, 1, parseOrder))
 # While developing parseOrder, used this code to discover there were only up to 4 modifiers that a drink can have:
 Drinks$ModNumber <- lengths(unname(sapply(Drinks$Modifiers, readOrderContents)), use.names = FALSE)
 max(Drinks$ModNumber)
-# Given the low maximum number, made sense to make separate columns for each modifier, which would be easy
-# for comparison with the code book later.
+# (this gives NA right now because has to be called on Modifiers before it's edited using parseOrder; 
+# pls ignore for now, will fix in a later commit)
+# Given the low maximum number of modifiers, made sense to make separate columns for each modifier, 
+# which would be easy for comparison with the code book later.
 
 # Since some menu items are typos or promotional versions of other items, replacing duplicates:
 
@@ -139,8 +141,9 @@ codeBook <- mutate(codeBook, Drink=paste0(ID,",",Description))
 codeBook <- codeBook %>% select(Drink,Size:`Specialty milk`)
 Drinks <- left_join(Drinks, codeBook, by=c("Drink" = "Drink"))
 
-# readModifier is fed a modifier (a string), and returns a vector of the length of howmanyever variables there are. 
-# The output vector has empty values where no change is needed, and with the value for the overwrite where change is needed:
+# readModifier is fed a modifier (a string), and returns a vector of the length of howmanyever variables 
+# (i.e. code book colums describing variables) there are. The output vector has empty values where 
+# no change is needed, and with the value for the overwrite where change is needed:
 
 # ifelse in readModifier likes codeBook to be a matrix (see function code), so converting it:
 codeBook <- as.matrix(codeBook)
