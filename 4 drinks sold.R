@@ -13,46 +13,36 @@ setwd('C:/Coffee and Weather Code/data')
 # Steps taken in this script:
 #
 #   (1) parsing the table with orders and creating a data frame of drinks;
-#   (2) replacing duplicate menu items in the drinks data frame;
+#   (2) replacing duplicate menu items (promos and typos) with originals in the drinks data frame;
 #   (3) joining the drinks data frame with relevant variables from the coding book;
-#   (4) rewriting coded variables according to modifiers to the drink.
-#
-# (In case "variables" are referred to in comments, this means coding variables from the code book: 
-# from "Size" to "Specialty milk".)
+#   (4) rewriting coded variables according to modifiers included with the drink.
 #
 #        ~ ~ ~
 
 # # CODE ---------------------------------------------------------------------------------------------
 
 # Importing the codebook and fixing encoding issues:
-codeBook <- read.csv("drinksCodebook.csv") #0-codebook.csv
+codeBook <- read.csv("codebook.csv", encoding="UTF-8")
 colnames(codeBook) <- c("ID", "Description",	"Frequency",	"Hierarchy",	"Type",	"Duplicate",	
                         "Size",	"Tea",	"Espresso",	"Filtered",	"Milk",	"Frothed",	"Frothing Level",	
                         "Chocolate",	"Watered down",	"Iced/Chilled",	"Sugary",	"Extra Caffeine",	
                         "Seasonal ingredient",	"Juice",	"Specialty milk")
 codeBook$Description <- as.character(codeBook$Description)
 codeBook$Duplicate <- as.character(codeBook$Duplicate)
-Encoding(codeBook$Description) <- "UTF-8"
-Encoding(codeBook$Duplicate) <- "UTF-8"
+# Encoding(codeBook$Description) <- "UTF-8"
+# Encoding(codeBook$Duplicate) <- "UTF-8"
 
 # Importing data on orders:
 Orders <- read.csv("0-drinks-only-orders.csv")
 colnames(Orders) <- c("Order ID", "Time", "Contents")
 Orders$Contents <- as.character(Orders$Contents)
 
-# Cleaning up the description of a weirdly named item in the code book:
-codeBook$Description <- str_replace_all(codeBook$Description, "#!!\\$/%/", "")
-
-# Dropping the non-drink rows of the codebook (note that codebook file supplied to Goran 
-# doesn't include them already b/c would be in violation of NDA):
-codeBook <- codeBook[codeBook$Type=="drink",]
-
 # Making a selector for dummy variables only, turning them into logicals, and substituting NAs:
 dummies <- as.logical(sample(1:ncol(codeBook)))
 dummies[c(1:7,13)] <- FALSE
 codeBook[dummies] <- as.logical(unlist(codeBook[dummies]))
 
-# First, let's write a function for getting to an item within the order:
+# First, a function for getting to items within an order:
 
 readOrderContents <- function(orderString) { 
   Items <- unlist(strsplit(orderString, "\\{")) 
@@ -79,7 +69,9 @@ parseOrder <- function(row) {
   orderID    <- row[1]
   orderTime  <- row[2]
   ItemsNMods <- readOrderContents(as.character(row[3]))
-  
+
+  #print(paste0("Order ID: ",orderID, " Order time: ",orderTime, " Order contents: ", ItemsNMods))
+    
   output <- data.frame(matrix(ncol=7,nrow=0))
   colnames(output) <- c("Order ID",   "Time",         "Drink",           "Mod 1", "Mod 2", "Mod 3", "Mod 4")
   #                      Order ID    | Time of order | Item number,name | Mod(s) number,name
@@ -109,8 +101,8 @@ parseOrder <- function(row) {
 Drinks <- rbindlist(apply(Orders, 1, parseOrder))
 
 # While developing parseOrder, used this code to discover there were only up to 4 modifiers that a drink can have:
-Drinks$ModNumber <- lengths(unname(sapply(Drinks$Modifiers, readOrderContents)), use.names = FALSE)
-max(Drinks$ModNumber)
+# Drinks$ModNumber <- lengths(unname(sapply(Drinks$Modifiers, readOrderContents)), use.names = FALSE)
+# max(Drinks$ModNumber)
 # (this gives NA right now because has to be called on Modifiers before it's edited using parseOrder; 
 # pls ignore for now, will fix in a later commit)
 # Given the low maximum number of modifiers, made sense to make separate columns for each modifier, 
@@ -135,8 +127,8 @@ replaceDuplicate <- function(Item) {
 
 Drinks$Drink <- sapply(Drinks$Drink, replaceDuplicate)
 
-# Using dplyr's mutating join after making codeBook's formatting of "Drink" (combination of ID & Description) 
-# match that of Drinks:
+# Using dplyr's mutating join after making codeBook's formatting of "Drink" 
+# (combination of ID & Description) match that of Drinks:
 codeBook <- mutate(codeBook, Drink=paste0(ID,",",Description))
 codeBook <- codeBook %>% select(Drink,Size:`Specialty milk`)
 Drinks <- left_join(Drinks, codeBook, by=c("Drink" = "Drink"))
@@ -145,7 +137,7 @@ Drinks <- left_join(Drinks, codeBook, by=c("Drink" = "Drink"))
 # (i.e. code book colums describing variables) there are. The output vector has empty values where 
 # no change is needed, and with the value for the overwrite where change is needed:
 
-# ifelse in readModifier likes codeBook to be a matrix (see function code), so converting it:
+# ifelse in readModifier likes codeBook to be a matrix, so converting it:
 codeBook <- as.matrix(codeBook)
 
 readModifier <- function(Modifier) {
@@ -190,7 +182,7 @@ processAllModifiers <- function(row) {
   if (length(positions)==0) {return(NULL)} else {
     contents <- Overwrites[positions]
     drinkrow <- vector(length=length(positions))
-    drinkrow <- sapply(drinkrow, function(x) { drinkrow=as.numeric(row[24]) })
+    drinkrow <- sapply(drinkrow, function(x) { drinkrow=as.numeric(row[23]) })
     output <- data.frame(drinkrow, positions, contents)
     colnames(output) <- c("Row", "Variable", "Content")
   }
@@ -221,7 +213,7 @@ overwriteModifiers <- function(x) {
 apply(Changes, 1, overwriteModifiers)
 
 # Removing unnecessary columns, replacing NAs with FALSE values for logicals, and saving to file:
-Drinks <- Drinks[,-c(4:8,24)]
+Drinks <- Drinks[,-c(4:7,23)]
 Drinks[,c(5:9,11:18)] <- replace(Drinks[,c(5:9,11:18)], is.na(Drinks[,c(5:9,11:18)]), FALSE)
 
 write.csv(Drinks, file = "0-drinks.csv", row.names = FALSE)
