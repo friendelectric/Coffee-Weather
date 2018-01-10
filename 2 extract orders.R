@@ -1,4 +1,6 @@
 library(stringr)
+library(dplyr)
+library(stringi)
 setwd('C:/Coffee and Weather Code/data')
 
 # # DESCRIPTION --------------------------------------------------------------------------------------
@@ -19,21 +21,34 @@ runFile <- function(x) {
   
   dFile <- readLines(paste0("Master-", x, "_000000-", x, "_235959.csv"), encoding="UTF-8")
   
+  dFile <- stri_trans_general(dFile, "Latin-ASCII")
+  Encoding(dFile) <- "Latin-ASCII"
+  dFile <- enc2utf8(dFile)
+  Encoding(dFile) <- "UTF-8"
+  
   # = WRANGLING ======================================================================================
   
   # This wrangling procedure from script 1 is pasted here w/o comments.
   
+  dFile <- dFile[-1]
   dFile <- unname(sapply(dFile, function(x) { gsub('\"', "", x) }))
   
-  fileDate <- as.Date(substr(dFile[2], 1, 10), format="%Y-%m-%d")
+  fileDate <- as.Date(substr(dFile[1], 1, 10), format="%Y-%m-%d")
+  print(fileDate)
   
-  orderRows <- unname(sapply(dFile, function(x) {
-    grepl("([[:digit:]]+,+)|(^[[:digit:]]+ \\<Cancelled\\> ,,$)|(^[[:digit:]]+ \\<Refunded\\> ,,$)", x)
-  }))
+  dFile <- dFile[-1] 
   
-  dFile <- dFile[orderRows]
+  emptyRows <- unname(sapply(dFile, function(x) { grepl("(^,+$)|(^\\-+,+$)|(^\\-+$)|(^[[:alpha:]]+ )", x) }))
+  dFile <- dFile[!emptyRows]
   
-  if ( length(dFile) > 0 ) {
+  is.empty <- sapply(dFile, function(x) { if (x=="") {return(TRUE)} else {return(FALSE)} })
+  
+  if ( (length(dFile) > 0)&&(!all(is.empty)) ) {
+
+    orderCounter <- unname(sapply(dFile, function(x) {
+      grepl( "(^[[:digit:]]{1,3},+$)|(^[[:digit:]]{1,3},[[:digit:]]+,+$)|(^[[:digit:]]+ \\<Cancelled\\> ,+$)|(^[[:digit:]]+ \\<Cancelled\\> ,[[:digit:]]+,$)|(^[[:digit:]]+,[[:digit:]]+,$)|(^[[:digit:]]+ \\<Refunded\\> ,)", x)
+    }))
+    orderCounter <- sum(orderCounter)
     
     dFile <- unname(sapply(dFile, function(x) { gsub("(,,+)|(,+$)", "", x) }))
     
@@ -42,18 +57,31 @@ runFile <- function(x) {
     orderTimes <- unname(sapply(dFile, function(x) { str_extract_all(x, "[[:digit:]]+:[[:digit:]]+") }))
     orderTimes <- unlist(orderTimes[lapply(orderTimes,length)>0])
     
-    dFile <- unname(sapply(dFile, function(x) { gsub(".*:[[:digit:]]{2}$", "", x)  }))
+    if (length(orderTimes)!=orderCounter)
+    { stop("Number of orders recorded (", orderCounter, ") doesn't match the number of timestamps ", 
+           length(orderTimes), "  extracted in ", fileDate, " (dateSequence[", 
+           match(format(fileDate,"%Y%m%d"),dateSequence), "])") }
     
+    dFile <- unname(sapply(dFile, function(x) { gsub(".*:[[:digit:]]{2}$", "", x) }))
     dFile <- dFile[dFile != ""]
     
-    dFile <- unname(sapply(dFile, function(x) {
-      gsub("(,+[[:digit:]]+.[[:digit:]]+$)|(,+[[:digit:]]+.[[:digit:]]+ \\(-[[:digit:]]+.[[:digit:]]+%\\) \\:\\: [[:digit:]]+.[[:digit:]]+$)|(,+[[:digit:]]+.[[:digit:]]+ \\(-[[:digit:]]+%\\) \\:\\: [[:digit:]]+.[[:digit:]]+$)", "", x)
-    }))
+    dFile <- unname(sapply(dFile, function(x) { gsub("(,+[[:digit:]]+.[[:digit:]]+$)|(,+[[:digit:]]+.[[:digit:]]+ \\(-[[:digit:]]+.[[:digit:]]+%\\) \\:\\: [[:digit:]]+.[[:digit:]]+$)|(,+[[:digit:]]+.[[:digit:]]+ \\(-[[:digit:]]+%\\) \\:\\: [[:digit:]]+.[[:digit:]]+$)", "", x)}))
+    
+    dFile <- unname(sapply(dFile, function(x) { gsub('#!!\\$/%/', '', x) }))
+    dFile <- unname(sapply(dFile, function(x) { gsub("\\$", "", x) }))
     
     dFile <- unname(sapply(dFile, function(x) { gsub(",[[:digit:]]+$", "", x) }))
     
     dFile <- unname(sapply(dFile, function(x) { gsub("^([^,]*,)|,", "\\1", x) }))
     
+    dFile <- unname(sapply(dFile, function(x) { gsub("\\(|\\)|\\:\\:", "", x) }))
+    
+    wordsOnly <- unname(sapply(dFile, function(x) { grepl("(^[[:alpha:]]+|[[:punct:]]+$)|(\\<certificats\\>)", x) }))
+    dFile <- dFile[!wordsOnly]
+    
+    if (fileDate=="2017-10-10") { dFile <- dFile[-434] }
+    if (fileDate=="2017-10-27") { dFile <- dFile[-356] }
+
     # = GENERATING A DATA FRAME ========================================================================
     
     # The wrangling procedure above produces a vector called dFile containing a sequence of
@@ -145,12 +173,12 @@ runFile <- function(x) {
 
 # = FUNCTION CALL ==================================================================================
 
-dateSequence <- seq(from = as.Date("2016-09-01"),
-                    to = as.Date("2017-11-22"),
-                    by = "days")
-dateSequence <- format(dateSequence, "%Y%m%d")
-
-sapply(dateSequence, runFile)
+  dateSequence <- seq(from = as.Date("2016-09-01"),
+                      to = as.Date("2017-11-22"),
+                      by = "days")
+  dateSequence <- format(dateSequence, "%Y%m%d")
+  
+  sapply(dateSequence, runFile)
 
 # This generates a 5.35MB CSV file containing all orders made at the coffee shop on days marked
 # in the dateSequence vector. There is a total of 70,183 orders recorded, including cancelled and
@@ -158,18 +186,18 @@ sapply(dateSequence, runFile)
 
 # = FINAL OUTPUT ===================================================================================
 
-orders <- read.csv("0-all-orders.csv")
-orders <- orders[-1]
+  orders <- read.csv("0-all-orders.csv")
+  orders <- orders[-1]
 
 #  sum(orders$discardLater) via console shows a total of 786 orders were cancelled or refunded.
 # sum(!orders$discardLater) via console shows a total of 69,397 orders were completed, and hence 
 # will be kept for analysis. Now, dropping the observations for cancelled and refunded orders (just
 # over 1% of all orders recorded), as well as the discardLater column itself and saving into a file.
 
-orders <- orders[!orders$discardLater, ]
-orders <- orders[-3]
-
-write.csv(orders, file = "0-all-completed-orders.csv", row.names=FALSE)
+  orders <- orders[!orders$discardLater, ]
+  orders <- orders[-3]
+  
+  write.csv(orders, file = "0-all-completed-orders.csv", row.names=FALSE)
 
 # This generates a 4.37MB CSV file with all 69,397 actual sales made from 2016-09-01 to 2017-11-12.
 #

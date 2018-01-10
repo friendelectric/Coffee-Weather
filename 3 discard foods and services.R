@@ -1,4 +1,6 @@
 library(stringr)
+library(dplyr)
+library(stringi)
 setwd('C:/Coffee and Weather Code/data')
 
 # # DESCRIPTION --------------------------------------------------------------------------------------
@@ -61,6 +63,8 @@ is.drink <- function(Item) {
 
 dropNonDrinks <- function(orderString) {
   
+  print(orderString)
+  
   Items <- unlist(strsplit(orderString, "\\{"))
   
   keep <- sapply(Items, is.drink)
@@ -77,44 +81,37 @@ dropNonDrinks <- function(orderString) {
 
 # # INPUT, FUNCTION CALL, OUTPUT ---------------------------------------------------------------------
 
-# Reading the orders data frame generated in script #2 & converting column from factor to character:
-
-allOrders <- read.csv("0-all-completed-orders.csv")
-allOrders$orderContents <- as.character(allOrders$orderContents)
-
-# Reference table was edited manually in Excel, and now its encoding is misbehaving
-# (we're working with French characters). Fixing encoding-related issues:
-
-referenceTable <- read.csv("menu-items-and-modifiers.csv", 
-                           as.is = c("ï..ID", "Description", "Frequency", "Hierarchy", "Type", "Duplicate"))
-colnames(referenceTable) <- c("ID", "Description", "Frequency", "Hierarchy", "Type", "Duplicate")
-Encoding(referenceTable$Description) <- "UTF-8"
-
-# There are some nastily named items (e.g., "9,Decaf#!!$/%/") -- they contain special characters, 
-# like $ -- this poses a problem for is.drink (the check in referenceTable$Description returns 0). 
-# Fixing with regexs:
-
-allOrders$orderContents    <- str_replace_all(allOrders$orderContents, "#!!\\$/%/", "")
-referenceTable$Description <- str_replace_all(referenceTable$Description, "#!!\\$/%/", "")
-
-Encoding(allOrders$orderContents) <- "UTF-8"
-
-# The star of the show:
-
-allOrders$orderContents <- sapply(allOrders$orderContents, dropNonDrinks)
-
-# Investigating how many observations we're dropping (i.e., how many do not contain any drinks
-# and hence are now empty):
-
-1-nrow(allOrders[!(is.na(allOrders$orderContents) | allOrders$orderContents==""), ])/nrow(allOrders)
-
-# This shows we're getting rid of about 13% of all orders. (That is, in 87% of all orders,
-# the customers ordered drinks.) Initially, we had 69,397 orders, and now we have 60,332 left.
-
-try(file.remove("0-drinks-only-orders.csv"), silent=TRUE)
-
-write.csv(allOrders[!(is.na(allOrders$orderContents) | allOrders$orderContents==""), ], 
-          file = "0-drinks-only-orders.csv",
-          row.names=FALSE)
-
-# The resultant file is ~3.23MB. (We got rid of about 1.14MB of data compared to the last file.)
+  # Reading the orders data frame generated in script #2 & converting column from factor to character:
+  
+  allOrders <- read.csv("0-all-completed-orders.csv", encoding="UTF-8")
+  allOrders$orderContents <- as.character(allOrders$orderContents)
+  
+  # Reference table was edited manually in Excel, and now its encoding is misbehaving
+  # (we're working with French characters). Fixing encoding-related issues:
+  
+  referenceTable <- read.csv("referenceTable.csv", 
+                             as.is = c("Ã¯..ID", "Description", "Frequency", "Hierarchy", "Type", "Duplicate"),
+                             encoding="UTF-8")
+  colnames(referenceTable) <- c("ID", "Description", "Frequency", "Hierarchy", "Type", "Duplicate")
+  Encoding(referenceTable$Description) <- "UTF-8"
+  Encoding(allOrders$orderContents) <- "UTF-8"
+  
+  # The star of the show:
+  
+  allOrders$orderContents <- sapply(allOrders$orderContents, dropNonDrinks)
+  
+  # Investigating how many observations we're dropping (i.e., how many do not contain any drinks
+  # and hence are now empty):
+  
+  1-nrow(allOrders[!(is.na(allOrders$orderContents) | allOrders$orderContents==""), ])/nrow(allOrders)
+  
+  # This shows we're getting rid of about 13% of all orders. (That is, in 87% of all orders,
+  # the customers ordered drinks.) Initially, we had 69,397 orders, and now we have 60,332 left.
+  
+  try(file.remove("0-drinks-only-orders.csv"), silent=TRUE)
+  
+  write.csv(allOrders[!(is.na(allOrders$orderContents) | allOrders$orderContents==""), ], 
+            file = "0-drinks-only-orders.csv",
+            row.names=FALSE)
+  
+  # The resultant file is ~3.23MB. (We got rid of about 1.14MB of data compared to the last file.)
