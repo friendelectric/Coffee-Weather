@@ -43,8 +43,8 @@ espresso <- as.data.frame(spread(espresso, Espresso, n, fill=0))
 colnames(espresso)[3] <- "Espresso"
 espresso <- espresso[,c(1,3)]
 
-vars <- left_join(size, tea, espresso, by=c("Day" = "Day"))
-
+vars <- left_join(size, tea, by=c("Day" = "Day"))
+vars <- left_join(vars, espresso, by=c("Day" = "Day"))
 
 # Attempting to do the same within a function:
 
