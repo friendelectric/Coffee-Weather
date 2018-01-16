@@ -3,11 +3,11 @@ setwd('C:/Coffee and Weather Code/data')
 
 # IMPORTING DRINKS DATA ========================================================
 
-Drinks <- read.csv("0-drinks.csv")
+Drinks <- read.csv("0-drinks-size.csv")
 colnames(Drinks) <- c("Order ID", "Day", "HH:MM", "Drink", "Modifiers", 
                       "Size", "Water", "Tea", "Espresso", "Filtered", "Chocolate", "Milk", 
                       "Frothed", "Frothing.level", "Seasonal", "Juice", "Specialty Milk", "Cold", 
-                      "High Sugar", "High Caffeine")
+                      "High Sugar", "High Caffeine", "ml")
 
 # Converting factors' (Size, Frothing.level) levels to dummies:
 
@@ -26,9 +26,15 @@ Drinks$Day <- as.Date(Drinks$Day)
 
 # Summarizing the logicals to produce final table:
 
-GrandFinale <- Drinks %>% 
+logicals <- Drinks %>% 
   group_by(Day) %>%
   summarise_if(is.logical, sum)
+
+numerics <- Drinks %>% group_by(Day) %>% summarise_if(is.numeric, mean)
+
+GrandFinale <- as.data.frame(merge(logicals, numerics, by="Day"))
+
+colnames(GrandFinale)[length(colnames(GrandFinale))] <- "Mean Size"
 
 # IMPORTING WEATHER DATA ==============================================================================
 
@@ -73,5 +79,5 @@ GrandFinale <- as.data.frame(merge(GrandFinale, airport, by = "Day"))
 # The table also contains weather data for that day.
 # See http://climate.weather.gc.ca/glossary_e.html for explanations of weather variables.
 
-write.csv(GrandFinale, "_FinalTableDrinksAndWeather.csv", 
+write.csv(GrandFinale, "_FinalTableDrinksAndWeather-sizes.csv", 
           row.names=FALSE, fileEncoding = "UTF-8")
