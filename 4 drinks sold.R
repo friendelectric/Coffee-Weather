@@ -18,8 +18,15 @@ setwd('C:/Coffee and Weather Code/data')
 #   (1) parsing the table with orders and creating a data frame of drinks;
 #   (2) replacing duplicate menu items (promos and typos) with originals in the drinks data frame;
 #   (3) joining the drinks data frame with relevant variables from the coding book;
-#   (4) rewriting coded variables according to modifiers included with the drink.
+#   (4) rewriting coded variables according to modifiers included with the drink;
+#   (5) generating a table of daily statistics re: drink sales, 
+#       importing weather data from CSV files, and joining the two sets.
 #
+# The final table contains data on daily sales of drinks containing a particular element, 
+# trait, or preparation feature.
+# An observation should be read as: "on September 1st, 2016, we sold 13 drinks containing 
+# water, 12 drinks containing tea, 62 espresso-based drinks, ..." 
+# For info on weather variables, see http://climate.weather.gc.ca/glossary_e.html.
 #        ~ ~ ~
 
 # # 0. IMPORTING DATA -----------------------------------------------------------------------------
@@ -27,11 +34,8 @@ setwd('C:/Coffee and Weather Code/data')
   tic("Importing data")
   
     # Importing the codebook and fixing encoding issues:
-    codeBook <- read.csv("codebook_edits.csv", encoding="UTF-8")
-    colnames(codeBook) <- c("ID", "Description",	"Frequency",	"Hierarchy",	"Type",	"Duplicate",	
-                            "Size",	"Tea",	"Espresso",	"Filtered",	"Milk",	"Frothed",	"Frothing level",	
-                            "Chocolate",	"Water",	"Cold",	"High sugar",	"High caffeine",	
-                            "Seasonal ingredient",	"Juice",	"Specialty milk")
+    codeBook <- read.csv("codebook_edits2.csv", encoding="UTF-8")
+    colnames(codeBook)[c(1,16,22)] <- c("ID","Cold","ml")
     codeBook$Description <- as.character(codeBook$Description)
     codeBook$Duplicate <- as.character(codeBook$Duplicate)
     
@@ -41,8 +45,9 @@ setwd('C:/Coffee and Weather Code/data')
     Orders$Contents <- as.character(Orders$Contents)
     
     # Making a selector for dummy variables only, turning them into logicals, and substituting NAs:
-    dummies <- as.logical(sample(1:ncol(codeBook)))
-    dummies[c(1:7,13)] <- FALSE
+    dummies <- as.logical(sample(1:(ncol(codeBook))))
+    names(dummies) <- paste0(seq(1:length(colnames(codeBook))), " ", colnames(codeBook))
+    dummies[c(1:7,13,22)] <- FALSE
     codeBook[dummies] <- as.logical(unlist(codeBook[dummies]))
   
   toc()
@@ -114,8 +119,8 @@ parseOrder <- function(row) {
 
     Drinks <- rbindlist(parRapply(clus, Orders, parseOrder))
 
-    stopCluster(clus)       #   default: 58.14 sec elapsed  
-  toc()                     # with snow: 17.19 sec elapsed
+    stopCluster(clus)  
+  toc()              
   
   
 # # 2. REPLACING DUPLICATES -----------------------------------------------------------------------  
@@ -139,7 +144,7 @@ replaceDuplicate <- function(Item) {
 
   tic("Replacing duplicates in Drinks data frame")
     Drinks$Drink <- sapply(Drinks$Drink, replaceDuplicate)
-  toc()                     # 7.38 sec elapsed
+  toc()                
 
   
 # # 3. JOINING DRINKS & CODEBOOK ------------------------------------------------------------------  
@@ -147,7 +152,7 @@ replaceDuplicate <- function(Item) {
   # Using dplyr's join after making codeBook's formatting of "Drink" 
   # (combination of ID & Description) match that of Drinks:
   codeBook <- mutate(codeBook, Drink=paste0(ID,",",Description))
-  codeBook <- codeBook %>% select(Drink,Size:`Specialty milk`)
+  codeBook <- codeBook %>% select(Drink,Size:ml)
   Drinks <- left_join(Drinks, codeBook, by=c("Drink" = "Drink"))
 
   
@@ -202,7 +207,7 @@ processAllModifiers <- function(row) {
   if (length(positions)==0) {return(NULL)} else {
     contents <- Overwrites[positions]
     drinkrow <- vector(length=length(positions))
-    drinkrow <- sapply(drinkrow, function(x) { drinkrow=as.numeric(row[23]) })
+    drinkrow <- sapply(drinkrow, function(x) { drinkrow=as.numeric(row[24]) })
     output <- data.frame(drinkrow, positions, contents)
     colnames(output) <- c("Row", "Variable", "Content")
   }
@@ -219,8 +224,8 @@ processAllModifiers <- function(row) {
 
     Changes <- rbindlist(parRapply(clus, Drinks, processAllModifiers))
     
-    stopCluster(clus)     #   default: 63.64 sec elapsed
-  toc()                   # with snow: 17.74 sec elapsed
+    stopCluster(clus)   
+  toc()               
 
 # overwriteModifiers is applied to one row of Changes. 
 # After overwriting the relevant cells in Drinks, returns a silent NULL:
@@ -241,9 +246,11 @@ overwriteModifiers <- function(x) {
 
   tic("Overwriting modifiers in Drinks based on Changes")
     apply(Changes, 1, overwriteModifiers)
-  toc()                   # 14.15 sec elapsed
+  toc()  
   
-  tic("Final preparations & output")
+# # 5. CLEAN-UP ===================================================================================
+  
+  tic("Final preparations: cleaning the table of Drinks, adding weather data & output of final table CAFE")
 
     # Keeping a concatenated column with modifiers for reference:
     Drinks <- Drinks %>% mutate(Modifiers=paste(`Mod 1`, `Mod 2`, `Mod 3`, `Mod 4`, sep="; "))
@@ -251,27 +258,210 @@ overwriteModifiers <- function(x) {
     
     # Cosmetics: removing unnecessary columns, moving columns around, 
     # replacing NAs, as well as an empty level lable:
-    Drinks <- Drinks[,-c(4:7,23)]
-    setcolorder(Drinks, c("Order ID", "Time", "Drink", "Modifiers", "Size",	
-                          "Water", "Tea",	"Espresso",	"Filtered",	"Chocolate", "Milk",	"Frothed",	"Frothing level",	
-                          "Seasonal ingredient",	"Juice",	"Specialty milk",
-                          "Cold",	"High sugar",	"High caffeine"))
-    Drinks <- separate(Drinks, Time, into=c("Day", "HH:MM"), sep = " ")
-    Drinks$Day <- as.Date(Drinks$Day, "%Y-%m-%d")
+    Drinks <- Drinks[,-c(4:7,24)]
+    colnames(Drinks) <- gsub("\\.", " ", colnames(Drinks))
+    colnames(Drinks) <- c("ID", "Time", "Item", "Size.oz", "Tea",
+                          "Espresso", "Drip", "RegularMilk", "Frothed", "Frothing", 
+                          "Chocolate", "Water", "Cold", 
+                          "HighInSugar", "HighInCaffeine", 
+                          "Seasonal", "Juice", 
+                          "SpecialtyMilk", "Size.Mean", "Modifiers")
+    setcolorder(Drinks, 
+      c("ID", "Time", "Item", "Modifiers",                            # order info (1:4)
+        "Size.oz", "Size.Mean",                                           # size (5:6)
+        "Espresso", "Drip", "Water", "Tea", "RegularMilk", "SpecialtyMilk",  # contents/ingredients
+          "Chocolate", "Seasonal", "Juice",                 # (7:15)
+        "Cold", "HighInSugar", "HighInCaffeine", "Frothed",           # characteristics (16:19)
+        "Frothing"))                                                  # preparation info (20)
+    # Appending column categories to var names:
+    colnames(Drinks)[c(1:4)]   <- paste0("Order.", colnames(Drinks[c(1:4)]))
+    colnames(Drinks)[c(7:15)]  <- paste0("Content.", colnames(Drinks[c(7:15)]))
+    colnames(Drinks)[c(16:19)] <- paste0("Trait.", colnames(Drinks[c(16:19)]))
+    colnames(Drinks)[20] <- "Prep.Frothing"
     
-    levels(Drinks$`Frothing level`)[levels(Drinks$`Frothing level`)==""] <- "none"
+    Drinks <- separate(Drinks, Order.Time, into=c("Order.Day", "Order.Time"), sep = " ")
+    Drinks$Order.Day <- as.Date(Drinks$Order.Day, "%Y-%m-%d")
     
-    Drinks[,c(15:20)] <- replace(Drinks[,c(15:20)], is.na(Drinks[,c(15:20)]), FALSE)
+    levels(Drinks$Prep.Frothing)[levels(Drinks$Prep.Frothing)==""] <- "none"
+    
+    Drinks[,c(13:20)] <- replace(Drinks[,c(13:20)], is.na(Drinks[,c(13:20)]), FALSE)
     
     # Do any of the columns have missing values? Returns a 0 length vector, so all is good.
     if (length(colnames(Drinks)[!unname(apply(Drinks, 2, 
                  function(col) { all(!is.na(col)) } ))])==0) { print("Very clean.") }
+
+    # Some vars must be mutually exclusive (cold drinks can't be frothed, regular milk doesn't mix 
+    # with specialty milk - - some obs marked like this due to human error when taking orders):
+    Drinks <- Drinks %>% 
+      mutate(Content.RegularMilk=replace(Content.RegularMilk, Content.SpecialtyMilk==TRUE, FALSE))
+    
+    Drinks <- Drinks %>%
+      mutate(Trait.Frothed=replace(Trait.Frothed, Trait.Cold==TRUE, FALSE)) %>%
+      mutate(Prep.Frothing=replace(Prep.Frothing, Trait.Cold==TRUE, "none"))
+    
+    # Remove size column for oz, won't use it - - 
+    # hard to describe drink volume with factors w/o there being too many:
+    Drinks <- Drinks[,-6]
     
     try(file.remove("0-drinks.csv"), silent=TRUE)
     write.csv(Drinks, file = "0-drinks.csv", row.names = FALSE)
     
-  toc()                    # 2.13 sec elapsed
-
+  rm(Changes, clus, Orders, dummies)
+    
+    # Add Sales vars: Total, Morning/Day/Night (for shifts: 7-12, 12-17, 17-21)
+    # two obs (Drinks[28191,], Drinks[28192,]) have "NA" (string) as value in Time 
+    # (first orders of the day, likely due to a glitch in cash register), fixing:
+    Drinks$Order.Time[which(Drinks$Order.Time=="NA")] <- "7:00"
+    
+    Drinks <- Drinks %>% separate(Order.Time, into=c("Order.Hour", "Order.Minute"), sep = ":")
+    Drinks$Order.Hour   <- as.integer(Drinks$Order.Hour)
+    Drinks$Order.Minute <- as.integer(Drinks$Order.Minute)
+    morning <- Drinks %>% group_by(Order.Day) %>% filter(Order.Hour <= 11) %>% tally
+    morning <- as.data.frame(morning)
+    colnames(morning) <- c("Day", "Sales.Morning")
+    day     <- Drinks %>% group_by(Order.Day) %>% filter(Order.Hour >= 12, Order.Hour < 17)  %>% tally
+    day     <- as.data.frame(day)
+    colnames(day) <- c("Day", "Sales.Day")
+    night   <- Drinks %>% group_by(Order.Day) %>% filter(Order.Hour >= 17, Order.Hour <= 21) %>% tally
+    night <- as.data.frame(night)
+    colnames(night) <- c("Day", "Sales.Night")
+  
+    sales <- left_join(morning, day, by="Day")
+    sales <- left_join(sales, night, by="Day")
+    sales <- replace(sales, is.na(sales), 0)
+    sales$Sales.Total <- sales$Sales.Morning+sales$Sales.Day+sales$Sales.Night
+    colnames(sales)[1] <- "Order.Day"
+    setcolorder(sales, c("Order.Day", "Sales.Total", "Sales.Morning", "Sales.Day", "Sales.Night"))
+    
+  # Converting frothing factor to dummies:
+  frothing <- as.data.frame(model.matrix(~Prep.Frothing+0, Drinks))
+  colnames(frothing) <- c("None", "High", "Low")
+  colnames(frothing) <- paste0("Prep.Frothing", colnames(frothing))
+  frothing <- sapply(frothing, function(x) {x<-as.logical(x)})
+  Drinks <- Drinks[,-c(20,21)]
+  Drinks <- cbind(Drinks, frothing)
+  colnames(Drinks)[20:22] <- c("Trait.Froth", "Trait.LongFroth", "Trait.ShortFroth")
+  # NoFroth is now Froth to simplify things:
+  Drinks <- Drinks %>% mutate(Trait.Froth = !Trait.Froth)
+  
+  # Summarizing the logicals to produce final table:
+  
+  logicals <- Drinks %>% group_by(Order.Day) %>% summarise_if(is.logical, sum)
+  numerics <- Drinks %>% group_by(Order.Day) %>% summarise_if(is.numeric, mean)
+  GrandFinale <- as.data.frame(merge(numerics, logicals, by="Order.Day"))
+  GrandFinale <- merge(sales, GrandFinale, by="Order.Day")
+  colnames(GrandFinale)[1] <- "Day"
+  GrandFinale <- GrandFinale[,-c(6:7)]
+  
+  # Making seasonal variables (based on date ranges from: https://www.climatestotravel.com/climate/canada/montreal)
+    fallSeq <- c(seq(from = as.Date("2016-09-01"), to = as.Date("2016-11-14"), by="days"),
+                 seq(from = as.Date("2017-09-01"), to = as.Date("2017-11-14"), by="days"))
+  winterSeq <- c(seq(from = as.Date("2016-11-15"), to = as.Date("2017-03-15"), by="days"),
+                 seq(from = as.Date("2017-11-15"), to = as.Date("2018-03-15"), by="days"))
+  springSeq <-   seq(from = as.Date("2017-03-16"), to = as.Date("2017-05-31"), by="days")
+  summerSeq <-   seq(from = as.Date("2017-06-01"), to = as.Date("2017-08-31"), by="days")
+  
+  GrandFinale$Season.Fall   <- ifelse(is.element(GrandFinale$Day, fallSeq), TRUE, FALSE)
+  GrandFinale$Season.Winter <- ifelse(is.element(GrandFinale$Day, winterSeq), TRUE, FALSE)
+  GrandFinale$Season.Spring <- ifelse(is.element(GrandFinale$Day, springSeq), TRUE, FALSE)
+  GrandFinale$Season.Summer <- ifelse(is.element(GrandFinale$Day, summerSeq), TRUE, FALSE)
+  
+  # Making student session variable:
+  examSeq <- c(seq(from=as.Date("2016-12-01"), to=as.Date("2016-12-22"), by="days"),
+               seq(from=as.Date("2017-12-01"), to=as.Date("2017-12-22"), by="days"),
+               seq(from=as.Date("2017-04-07"), to=as.Date("2017-04-30"), by="days"))
+  
+  GrandFinale$Season.Exams <- ifelse(is.element(GrandFinale$Day, examSeq), TRUE, FALSE)
+  
+# # 6. IMPORTING WEATHER DATA ==============================================================================
+  
+  # Date sequence for which we have data:
+  dateSequence <- seq(from = as.Date("2016-09-01"), to = as.Date("2017-11-22"), by = "days")
+  
+  # Reading airport weather data downloaded from the gov's Climate website
+  # (data from 2016 and 2017 needs to be binded):
+  
+  airport2016 <- read.csv("weather_airport_2016.csv", encoding="UTF-8")
+  airport2017 <- read.csv("weather_airport_2017.csv", encoding="UTF-8")
+  airport <- rbind(airport2016,airport2017)
+  rm(airport2016, airport2017)
+  airport <- airport[,!grepl(".Flag", colnames(airport))]
+  
+  colnames(airport)[1] <- "Day"
+  airport$Day <- as.Date(airport$Day)
+  
+  # Keeping only days for which we have Drinks data:
+  
+  airport <- airport %>% filter(is.element(Day, dateSequence))
+  airport$Spd.of.Max.Gust..km.h. <- as.integer(gsub("<|>","",airport$Spd.of.Max.Gust..km.h.))
+  airport <- airport[,-11]
+  colnames(airport) <- c("Day", "Temp.Max", "Temp.Min", "Temp.Mean", 
+                         "Temp.HeatDegrDays", "Temp.CoolDegrDays", 
+                         "Precip.TotalRain", "Precip.TotalSnow", "Precip.TotalPrecipitation",
+                         "Precip.SnowOnGround", "Wind.MaxGustSpeed")
+  airport$Temp.Diff <- airport$Temp.Max-airport$Temp.Min
+  airport$Precip.Snow <- ifelse(airport$Precip.TotalSnow>0, TRUE, FALSE)
+  airport$Precip.Rain <- ifelse(airport$Precip.TotalRain>0, TRUE, FALSE)
+  airport <- airport[,order(names(airport))]
+  
+  # adding hourly dimension (more weather vars, averaged daily stats) from airport data
+  hourly <- read.csv("hourly_airport.csv", encoding="UTF-8")
+  colnames(hourly)[1] <-"DateTime"
+  hourly <- separate(hourly, DateTime, into=c("Day", "HM"), sep=" ")
+  hourly$Day <- as.Date.character(hourly$Day)
+  
+  hourly <- hourly %>% 
+    group_by(Day) %>%
+    filter(is.element(Day, dateSequence)) %>%
+    summarise_if(is.numeric, mean)
+  hourly <- as.data.frame(hourly)
+  colnames(hourly) <- c("Day", "Temp.DewPoint", "Humidity", "Wind.Speed", 
+                        "Visibility", "Pressure", "Temp.WindChill")
+  hourly <- hourly[,order(names(hourly))]
+  
+  airport <- as.data.frame(merge(airport, hourly, by="Day"))
+  
+  # Merging Drinks and Weather data: 
+  GrandFinale <- as.data.frame(merge(GrandFinale, airport, by = "Day"))
+  
+  # Exploring where we have NAs in weather variables, except for the two winter-specific vars
+  # that naturally have NAs outside winter times:
+  cafe <- subset(GrandFinale, select=-c(29,43))
+  empties <- which(!apply(cafe, 1, function(x) { all(!is.na(x)) } )) 
+  # Returns a vector of just 6 obs, exploring - - No apparent pattern in missing values, 
+  # but one of these obs is perfectly fine, fixing manually:
+  GrandFinale[153,27] <- FALSE
+  GrandFinale[153,31] <- 0
+  empties <- unname(empties)[-1]
+  # Dropping the empties from the table - getting rid of NAs:
+  GrandFinale <- GrandFinale[-empties,]
+  sum(is.na(GrandFinale$Temp.WindChill))/length(GrandFinale$Temp.WindChill)
+  # Wind chill variable has NAs for 85% of obs, dropping this column:
+  GrandFinale <- GrandFinale[,-which(colnames(GrandFinale)=="Temp.WindChill")]
+  # Snow on ground has NAs for when there's no snow on the ground (most days),
+  # and we only have data for one winter. Will get rid of this too:
+  GrandFinale <- GrandFinale[,-which(colnames(GrandFinale)=="Precip.SnowOnGround")]
+  
+  setcolorder(GrandFinale, 
+              c("Day", "Sales.Total", "Sales.Morning", "Sales.Day", "Sales.Night", 
+                "Size.Mean", 
+                "Content.Espresso", "Content.Drip", "Content.Water", "Content.Tea", 
+                      "Content.RegularMilk", "Content.SpecialtyMilk",
+                      "Content.Chocolate", "Content.Seasonal", "Content.Juice", 
+                "Trait.HighInSugar", "Trait.HighInCaffeine", "Trait.Cold", 
+                      "Trait.Froth", "Trait.ShortFroth", "Trait.LongFroth", 
+                "Season.Fall", "Season.Winter", "Season.Spring", "Season.Summer", "Season.Exams",
+                "Precip.Rain", "Precip.Snow", 
+                    "Precip.TotalPrecipitation", "Precip.TotalRain", "Precip.TotalSnow", 
+                "Temp.Mean", "Temp.Max", "Temp.Min", "Temp.Diff", 
+                      "Temp.CoolDegrDays", "Temp.HeatDegrDays", "Temp.DewPoint",
+                "Humidity", "Pressure", "Visibility", 
+                "Wind.Speed", "Wind.MaxGustSpeed"))
+  
+  try(file.remove("cafe.csv"), silent=TRUE)
+  write.csv(GrandFinale, file = "cafe.csv", row.names = FALSE)
+  
+toc()  
   
 # # NOTES -----------------------------------------------------------------------------------------------
 # ~ ~ ~ ~ ~ ~ 
