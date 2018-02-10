@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Edward Zavertyaev" />
+
+
+<title>CAPSTONE PROJECT PROPOSAL</title>
+
+<script src="Capstone_Proposal_Coffee_and_Weather_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="Capstone_Proposal_Coffee_and_Weather_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="Capstone_Proposal_Coffee_and_Weather_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="Capstone_Proposal_Coffee_and_Weather_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="Capstone_Proposal_Coffee_and_Weather_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="Capstone_Proposal_Coffee_and_Weather_files/navigation-1.1/tabsets.js"></script>
+<link href="Capstone_Proposal_Coffee_and_Weather_files/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="Capstone_Proposal_Coffee_and_Weather_files/highlightjs-1.1/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">CAPSTONE PROJECT PROPOSAL</h1>
+<h3 class="subtitle"><em>ASSESSING THE IMPACT OF WEATHER VARIABLES ON COFFEE SALES</em></h3>
+<h4 class="author"><em>Edward Zavertyaev</em></h4>
+
+</div>
+
+
+<section id="the-problem" class="level3">
+<h3>THE PROBLEM</h3>
+<p><strong>Owners of independent coffee shops often don’t know why certain drinks are popular on certain days.</strong></p>
+<p>Unlike the big coffee chains, these small business owners don’t have <a href="https://www.stage-gate.com/Summit_2013/speakers_starbucks.php">the R&amp;D departments with several dozen employees</a> to investigate this puzzle.</p>
+<p>What makes a drink sell? Do its contents—espresso, milk, chocolate, or anything else—influence the sale? Or do some other, external variables play a role?</p>
+</section>
+<section id="the-evidence" class="level3">
+<h3>THE EVIDENCE</h3>
+<p><strong>Evidence suggests that weather influences consumer behavior.</strong></p>
+<p>Anecdotally, we know that coffee is a comfort beverage. Obviously, an iced americano goes well with a hot summer day, just as a hot latte lends itself nicely to staying inside a cozy coffee shop in the dead of winter.</p>
+<p>Doctors say there are environmental, behavioral, and evolutionary reasons for why <a href="http://www.cnn.com/2012/11/01/health/jampolis-comfort-food-substitutes/index.html">we crave comfort foods</a> depending on weather.</p>
+<p>Studies of consumer behavior show that unusual weather <a href="https://www.federalreserve.gov/pubs/FEDS/2000/200008/200008pap.pdf">explains</a> some monthly fluctuations in retail sales. Further, sunlight, mediated by negative affect, <a href="http://www.kylemurray.com/papers/MDFP_JRCS2010.pdf">influences</a> consumer spending.</p>
+<p>So, <strong>what if there’s a link between consumer behavior and the weather in the coffee market?</strong></p>
+<p>Big companies in the coffee market seem to think so. Dunkin’ Brands have <a href="https://www.cheatsheet.com/business/dunkin-brands-blames-weather-for-making-its-coffee-sales-go-cold.html/">blamed</a> severe weather on poor sales and Starbucks regularly <a href="http://www.weatherunlocked.com/media/1096/the-complete-guide-to-weather-based-marketing.pdf">engage</a> in weather-triggered marketing.</p>
+<p>Importantly, there are <a href="https://enterprisesolutions.accuweather.com/assets/documents/AccuWeather_D3_Solutions.pdf">several</a> <a href="http://www.skymosity.com/articles/coffee-and-weather.pdf">commercial</a> <a href="http://www.weatherunlocked.com/media/1096/the-complete-guide-to-weather-based-marketing.pdf">solutions</a> that specialize in taking a business’ sales or marketing campaign data and combining it with local weather data to produce insight.</p>
+</section>
+<section id="the-project" class="level3">
+<h3>THE PROJECT</h3>
+<p>In my capstone project, I will attempt to do the same: <strong>produce insight based on sales and weather data</strong>.</p>
+<p>I will take sales data from a neighborhood coffee shop and combine it with historical weather data from a local weather station. Then, I will investigate whether there are any relationships between weather condition variables and beverage contents and preparation procedures.</p>
+<p>Preliminarily, <strong>the research question</strong> can be defined as:</p>
+<blockquote>
+<p>Can weather variables predict sales of drinks with specific ingredients or features?</p>
+</blockquote>
+<p>In other words,</p>
+<blockquote>
+<p>do people crave a specific ingredient or feature of a drink, dependent on weather conditions?</p>
+</blockquote>
+</section>
+<section id="the-client" class="level3">
+<h3>THE CLIENT</h3>
+<p><strong>The client is an independently owned coffee shop</strong><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> in Montreal, Canada.</p>
+<p>The client makes for a good case study because:</p>
+<ul>
+<li><p>The local climate has <a href="https://www.climatestotravel.com/climate/canada/montreal">clearly defined seasons</a>, providing for rich variation in weather variables throughout the year.</p></li>
+<li><p>In addition to providing the locals with a caffeine fix on their way to work in the morning, the shop serves telecommuters and students. This helps the shop maintain a steady flow of orders throughout the day.</p></li>
+<li><p>Despite the overall stable clientele, the business appears to experience a lot of variation in order volumes during certain times of year. The owner welcomes any insight that may explain the variation, and suspects that at least some of it may be due to fluctuations in weather.</p></li>
+</ul>
+</section>
+<section id="the-implications" class="level3">
+<h3>THE IMPLICATIONS</h3>
+<p>My analysis will have implications for the following aspects of the client’s day-to-day operations:</p>
+<ul>
+<li><p><strong>Stock management.</strong> Having insight into the effects of weather variables on product demand, the client can adjust stock management. For example, they could order less milk if they expect less demand for milk-based beverages given tomorrow’s weather forecast.</p></li>
+<li><p><strong>Product development.</strong> Knowing how weather conditions influence beverage preferences, the client may decide to adjust the current product selection or create new products. To illustrate, knowing that there is a better chance of selling a chocolaty beverage when it rains may lead to developing a special drink containing chocolate only sold on rainy days.</p></li>
+<li><p><strong>Marketing strategies.</strong> Aware of just which products customers want to buy in certain weather conditions, the client may adjust what―and how―they market. Weather-based marketing won’t just involve deciding what witty message will work well on that sidewalk sign outside the door. For instance, the client may want to collect their customers’ email addresses to produce weather-trigged marketing campaigns or send out a timely call to action on the business’ social media accounts.</p></li>
+</ul>
+</section>
+<section id="the-data" class="level3">
+<h3>THE DATA</h3>
+<p>To complete this project, <strong>I will combine two sets of data</strong>:</p>
+<ol type="1">
+<li><strong>client-supplied data on orders made at the coffee shop</strong>,<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> generated by a cloud-based cash register system, and</li>
+<li><strong>historical weather data for the coffee shop’s location</strong> from the Government of Canada’s website.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></li>
+</ol>
+<p>The client has supplied me with 448 *.csv files. Each file represents a day of operation and contains hundreds of lines. The lines describe every order made that day, including products purchased, payment information, and exact time of order (HH:MM).</p>
+</section>
+<section id="the-approach" class="level3">
+<h3>THE APPROACH</h3>
+<p>Preliminarily, I can outline the following <strong>steps necessary to solve the problem</strong>:</p>
+<ol type="1">
+<li>Extract the client-supplied data from hundreds of *.csv files into a data frame of <em>orders</em>, where each observation is <em>a unique order</em> made at the client’s business at HH:MM on a given day.</li>
+<li>Create a codebook for <em>beverage products</em>, coding each product on the menu according to a set of dummy variables (contains espresso, contains milk, hot or cold, milk frothed or not, etc.).</li>
+<li>Transform the <em>orders</em> data frame into a data frame of <em>daily sales</em>.</li>
+<li>Download and compile <em>weather data</em> into a single data frame, and combine it with <em>daily sales</em>.</li>
+<li>Perform Data Science Magic to uncover whether there are any relationships among variables and, if there are, investigate them further.</li>
+</ol>
+</section>
+<section id="the-deliverables" class="level3">
+<h3>THE DELIVERABLES</h3>
+<p>My deliverables will include those required by the capstone project guidelines: code, a paper, and a slide deck.</p>
+</section>
+<section class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>The client is part of <a href="http://achillescoffeeroasters.com/what-is-the-third-wave-coffee-movement/">the third wave coffee movement</a> in the coffee industry: an independent-minded, artisanal reaction to the corporate <a href="https://www.craftbeveragejobs.com/the-history-of-first-second-and-third-wave-coffee-22315/">second wave</a> of the likes of Starbucks. The third wave coffee market treats coffee as a premium product defined by attention to detail in all stages of the process, from sourcing fair-trade beans to roasting to preparing quality espresso. By definition, these are small businesses without access to big data that second-wave chains like Starbucks have. However, lately, the third wave industry has <a href="https://achillescoffeeroasters.com/growth-of-third-wave-coffee/">attracted</a> large-scale investments. Putting aside the question of whether an overgrown third-wave coffee company can still be considered third wave, any third-wave coffee business will benefit from analyzing data available to it to thwart competition from both other small businesses and the big chains.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>To respect the conditions of my non-disclosure agreement with the business, I will not name or otherwise make the business identifiable. (Naming the metropolitan area where the business is located is unavoidable, since I will be using weather data connected to a specific location.) Unfortunately, this means that I will not be able to share or publish the original files generated by the cash register system. However, the data will be sharable once it is sufficiently wrangled and stripped of identifying information, like unique names of menu items, or the name of the coffee roasting company that the shop partners with.<a href="#fnref2" class="footnote-back">↩</a></p></li>
+<li id="fn3"><p>For examples of weather data supplied by Climate Canada, see this <a href="http://climate.weather.gc.ca/climate_data/daily_data_e.html?hlyRange=2013-02-13%7C2017-11-27&amp;dlyRange=2013-02-14%7C2017-11-27&amp;mlyRange=%7C&amp;StationID=51157&amp;Prov=QC&amp;urlExtension=_e.html&amp;searchType=stnProx&amp;optLimit=yearRange&amp;Month=11&amp;Day=27&amp;StartYear=2014&amp;EndYear=2017&amp;Year=2017&amp;selRowPerPage=25&amp;Line=1&amp;txtRadius=25&amp;optProxType=city&amp;selCity=45%7C31%7C73%7C39%7CMontr%C3%A9al&amp;selPark=&amp;txtCentralLatDeg=&amp;txtCentralLatMin=0&amp;txtCentralLatSec=0&amp;txtCentralLongDeg=&amp;txtCentralLongMin=0&amp;txtCentralLongSec=0&amp;timeframe=2">daily data report</a> for November 2017, or this <a href="http://climate.weather.gc.ca/climate_data/hourly_data_e.html?hlyRange=2013-02-13%7C2018-02-07&amp;dlyRange=2013-02-14%7C2018-02-07&amp;mlyRange=%7C&amp;StationID=51157&amp;Prov=QC&amp;urlExtension=_e.html&amp;searchType=stnName&amp;optLimit=yearRange&amp;StartYear=1840&amp;EndYear=2018&amp;selRowPerPage=25&amp;Line=0&amp;searchMethod=contains&amp;txtStationName=montreal+intl+a&amp;timeframe=1&amp;Year=2018&amp;Month=1&amp;Day=3">hourly data report</a> for January 3, 2018.<a href="#fnref3" class="footnote-back">↩</a></p></li>
+</ol>
+</section>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
