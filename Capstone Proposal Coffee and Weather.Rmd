@@ -1,0 +1,97 @@
+---
+title: "CAPSTONE PROJECT PROPOSAL"
+subtitle: "ASSESSING THE IMPACT OF WEATHER VARIABLES ON COFFEE SALES"
+author: "Edward Zavertyaev"
+output: 
+  html_document:
+    self_contained: no
+    smart: false
+---
+
+### THE PROBLEM
+
+**Owners of independent coffee shops often don’t know why certain drinks are popular on certain days.**
+
+Unlike the big coffee chains, these small business owners don’t have [the R&D departments with several dozen employees](https://www.stage-gate.com/Summit_2013/speakers_starbucks.php) to investigate this puzzle.
+
+What makes a drink sell? Do its contents---espresso, milk, chocolate, or anything else---influence the sale? Or do some other, external variables play a role?
+
+### THE EVIDENCE
+
+**Evidence suggests that weather influences consumer behavior.** 
+
+Anecdotally, we know that coffee is a comfort beverage. Obviously, an iced americano goes well with a hot summer day, just as a hot latte lends itself nicely to staying inside a cozy coffee shop in the dead of winter.
+
+Doctors say there are environmental, behavioral, and evolutionary reasons for why [we crave comfort foods](http://www.cnn.com/2012/11/01/health/jampolis-comfort-food-substitutes/index.html) depending on weather.
+
+Studies of consumer behavior show that unusual weather [explains](https://www.federalreserve.gov/pubs/FEDS/2000/200008/200008pap.pdf) some monthly fluctuations in retail sales. Further, sunlight, mediated by negative affect, [influences](http://www.kylemurray.com/papers/MDFP_JRCS2010.pdf) consumer spending.
+
+So, **what if there's a link between consumer behavior and the weather in the coffee market?**
+
+Big companies in the coffee market seem to think so. Dunkin’ Brands have [blamed](https://www.cheatsheet.com/business/dunkin-brands-blames-weather-for-making-its-coffee-sales-go-cold.html/) severe weather on poor sales and Starbucks regularly [engage](http://www.weatherunlocked.com/media/1096/the-complete-guide-to-weather-based-marketing.pdf) in weather-triggered marketing. 
+
+Importantly, there are [several](https://enterprisesolutions.accuweather.com/assets/documents/AccuWeather_D3_Solutions.pdf) [commercial](http://www.skymosity.com/articles/coffee-and-weather.pdf) [solutions](http://www.weatherunlocked.com/media/1096/the-complete-guide-to-weather-based-marketing.pdf) that specialize in taking a business’ sales or marketing campaign data and combining it with local weather data to produce insight.
+
+### THE PROJECT
+
+In my capstone project, I will attempt to do the same: **produce insight based on sales and weather data**.
+
+I will take sales data from a neighborhood coffee shop and combine it with historical weather data from a local weather station. Then, I will investigate whether there are any relationships between weather condition variables and beverage contents and preparation procedures.
+
+Preliminarily, **the research question** can be defined as: 
+
+> Can weather variables predict sales of drinks with specific ingredients or features?
+
+In other words, 
+
+>do people crave a specific ingredient or feature of a drink, dependent on weather conditions?
+
+### THE CLIENT
+
+**The client is an independently owned coffee shop**[^1] in Montreal, Canada.
+
+The client makes for a good case study because:
+
+* The local climate has [clearly defined seasons](https://www.climatestotravel.com/climate/canada/montreal), providing for rich variation in weather variables throughout the year.
+
+* In addition to providing the locals with a caffeine fix on their way to work in the morning, the shop serves telecommuters and students. This helps the shop maintain a steady flow of orders throughout the day.
+
+*	Despite the overall stable clientele, the business appears to experience a lot of variation in order volumes during certain times of year. The owner welcomes any insight that may explain the variation, and suspects that at least some of it may be due to fluctuations in weather.
+
+[^1]: The client is part of [the third wave coffee movement](http://achillescoffeeroasters.com/what-is-the-third-wave-coffee-movement/) in the coffee industry: an independent-minded, artisanal reaction to the corporate [second wave](https://www.craftbeveragejobs.com/the-history-of-first-second-and-third-wave-coffee-22315/) of the likes of Starbucks. The third wave coffee market treats coffee as a premium product defined by attention to detail in all stages of the process, from sourcing fair-trade beans to roasting to preparing quality espresso. By definition, these are small businesses without access to big data that second-wave chains like Starbucks have. However, lately, the third wave industry has [attracted](https://achillescoffeeroasters.com/growth-of-third-wave-coffee/) large-scale investments. Putting aside the question of whether an overgrown third-wave coffee company can still be considered third wave, any third-wave coffee business will benefit from analyzing data available to it to thwart competition from both other small businesses and the big chains.
+
+### THE IMPLICATIONS
+
+My analysis will have implications for the following aspects of the client’s day-to-day operations:
+
+* **Stock management.** Having insight into the effects of weather variables on product demand, the client can adjust stock management. For example, they could order less milk if they expect less demand for milk-based beverages given tomorrow’s weather forecast.
+
+* **Product development.** Knowing how weather conditions influence beverage preferences, the client may decide to adjust the current product selection or create new products. To illustrate, knowing that there is a better chance of selling a chocolaty beverage when it rains may lead to developing a special drink containing chocolate only sold on rainy days.
+
+* **Marketing strategies.** Aware of just which products customers want to buy in certain weather conditions, the client may adjust what―and how―they market. Weather-based marketing won’t just involve deciding what witty message will work well on that sidewalk sign outside the door. For instance, the client may want to collect their customers’ email addresses to produce weather-trigged marketing campaigns or send out a timely call to action on the business’ social media accounts.
+
+### THE DATA
+
+To complete this project, **I will combine two sets of data**:
+
+1. **client-supplied data on orders made at the coffee shop**,[^2] generated by a cloud-based cash register system, and
+2. **historical weather data for the coffee shop's location** from the Government of Canada's website.[^3]
+
+The client has supplied me with 448 \*.csv files. Each file represents a day of operation and contains hundreds of lines. The lines describe every order made that day, including products purchased, payment information, and exact time of order (HH:MM).
+
+[^2]: To respect the conditions of my non-disclosure agreement with the business, I will not name or otherwise make the business identifiable. (Naming the metropolitan area where the business is located is unavoidable, since I will be using weather data connected to a specific location.) Unfortunately, this means that I will not be able to share or publish the original files generated by the cash register system. However, the data will be sharable once it is sufficiently wrangled and stripped of identifying information, like unique names of menu items, or the name of the coffee roasting company that the shop partners with.
+[^3]: For examples of weather data supplied by Climate Canada, see this [daily data report](http://climate.weather.gc.ca/climate_data/daily_data_e.html?hlyRange=2013-02-13%7C2017-11-27&dlyRange=2013-02-14%7C2017-11-27&mlyRange=%7C&StationID=51157&Prov=QC&urlExtension=_e.html&searchType=stnProx&optLimit=yearRange&Month=11&Day=27&StartYear=2014&EndYear=2017&Year=2017&selRowPerPage=25&Line=1&txtRadius=25&optProxType=city&selCity=45%7C31%7C73%7C39%7CMontr%C3%A9al&selPark=&txtCentralLatDeg=&txtCentralLatMin=0&txtCentralLatSec=0&txtCentralLongDeg=&txtCentralLongMin=0&txtCentralLongSec=0&timeframe=2) for November 2017, or this [hourly data report](http://climate.weather.gc.ca/climate_data/hourly_data_e.html?hlyRange=2013-02-13%7C2018-02-07&dlyRange=2013-02-14%7C2018-02-07&mlyRange=%7C&StationID=51157&Prov=QC&urlExtension=_e.html&searchType=stnName&optLimit=yearRange&StartYear=1840&EndYear=2018&selRowPerPage=25&Line=0&searchMethod=contains&txtStationName=montreal+intl+a&timeframe=1&Year=2018&Month=1&Day=3) for January 3, 2018.
+
+### THE APPROACH
+
+Preliminarily, I can outline the following **steps necessary to solve the problem**:
+
+1. Extract the client-supplied data from hundreds of \*.csv files into a data frame of *orders*, where each observation is *a unique order* made at the client’s business at HH:MM on a given day.
+2. Create a codebook for *beverage products*, coding each product on the menu according to a set of dummy variables (contains espresso, contains milk, hot or cold, milk frothed or not, etc.).
+3. Transform the *orders* data frame into a data frame of *daily sales*.
+4. Download and compile *weather data* into a single data frame, and combine it with *daily sales*.
+5. Perform Data Science Magic to uncover whether there are any relationships among variables and, if there are, investigate them further.
+
+### THE DELIVERABLES
+
+My deliverables will include those required by the capstone project guidelines: code, a paper, and a slide deck.
