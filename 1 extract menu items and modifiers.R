@@ -1,10 +1,13 @@
 library(stringr)
 library(stringi)
 library(dplyr)
+library(tictoc)
 setwd('C:/Coffee and Weather Code/data')
 
 # # DESCRIPTION --------------------------------------------------------------------------------------
-# ~ ~ ~ ~ ~ ~ 
+# ~ ~ ~ ~ ~ ~ ~
+#                      EXTRACTING UNIQUE MENU ITEMS & MENU ITEM MODIFIERS
+#
 # Going over the 448 daily sales files produced by the cash register, this project's first script:
 #
 #   (1) wrangles the data using regular expressions, extracting all useful information on orders,
@@ -14,11 +17,16 @@ setwd('C:/Coffee and Weather Code/data')
 # The data in the output file will be manually categorized to overcome the main challenge of the data:
 #   THE CASH REGISTER SYSTEM DOES NOT DIFFERENTIATE PROPERLY BETWEEN MENU ITEMS ("4, large latte") 
 #   AND MENU ITEM MODIFIERS ("4, soy milk"), WHICH RESULTS IN DOUBLE-BOOKED I.D. NUMBERS
-#   REFERRING TO BOTH MENU ITEMS AND MENU ITEM MODIFIERS.
+#   REFERRING TO BOTH MENU ITEMS AND MENU ITEM MODIFIERS SIMULTANEOUSLY.
 #
 # To proceed, it is first necessary to extract a list of all menu items and their modifiers, and
 # separate them into two piles manually. After that is done, it will be possible to move on to the 
 # next stage of the project: building data frames of items ordered during each day.
+#
+# Simply put, this script answers the question: "What's on the menu?".
+#
+# Only once we know what's on the menu andcan discriminate between menu items and menu item modifiers,
+# we can proceed further.
 #            ~ ~ ~
 
 # # FUNCTION: READ & WRANGLE A FILE, DUMP UNIQUE MENU ITEMS & MODIFIERS INTO SEPARATE CSV ------------
@@ -26,17 +34,13 @@ runFile <- function(x) {
 
   # = IMPORTING & FIXING ENCODING =================================================================
   
-  # File names are standard and contain the date. Function will be fed the sequence of dates 
-  # for which there are files available. Reading lines from a file:
+  # File names are standard and contain the date. This function will be fed the sequence of dates 
+  # for which files are available. Reading lines from a file:
   
   dFile <- readLines(paste0("Master-", x, "_000000-", x, "_235959.csv"), encoding="UTF-8")
   
-  # print(stri_enc_mark(dFile))
-  # print(stri_enc_isutf8(dFile))
-
   dFile <- stri_trans_general(dFile, "Latin-ASCII")
   Encoding(dFile) <- "Latin-ASCII"
-  
   dFile <- enc2utf8(dFile)
   Encoding(dFile) <- "UTF-8"
   
@@ -45,24 +49,26 @@ runFile <- function(x) {
   
   # = WRANGLING ========================================================================================
 
-  dFile <- dFile[-1] # (first line always contains the name of the business)
+  # The first line always contains the name of the business. Removing:
+  
+  dFile <- dFile[-1]
     
-  # head(dFile) via console showed file contains escape backslashes with quotes all over; removing:
+  # head(dFile) via console showed file contains escape backslashes with quotes all over. Removing:
   
   dFile <- unname(sapply(dFile, function(x) { gsub('\"', "", x) }))
   
   # Saving the file's date into variable fileDate before dropping lines that don't contain orders:
   
   fileDate <- as.Date(substr(dFile[1], 1, 10), format="%Y-%m-%d")
-  #print(fileDate) # (printing file date for debugging purposes)
+  print(fileDate) # (printing file date for debugging purposes)
   
-  dFile <- dFile[-1] # (first line contains fileDate, already saved, - - remove it)
+  dFile <- dFile[-1] # (first line contains fileDate, already saved, - - removing)
 
   # Every order number begins with a row where a [[:digit:]]+ is followed by ",,,,,,,,".
   # Grabbing rows that don't contain order information - - these are lines containing:
   #  (a) commas only     (b) dashes followed by commas
   #  (c) dashes only     (d) words in the beginning - - these are "Sale notes" recorded
-  #                          on select items that are of no interest to this data collection
+  #                          on select items that are irrelevant to this data collection
   
   emptyRows <- unname(sapply(dFile, function(x) { grepl("(^,+$)|(^\\-+,+$)|(^\\-+$)|(^[[:alpha:]]+ )", x) }))
   
@@ -70,8 +76,9 @@ runFile <- function(x) {
   
   dFile <- dFile[!emptyRows]
 
-  # If the shop was closed, the file will have 0 relevant lines, because there was 0 orders.
+  # If the shop was closed, the file will have 0 relevant lines, because there were no orders.
   # Some days have empty files and the vector results in empty char vectors; checking for that, too:
+  
   is.empty <- sapply(dFile, function(x) { if (x=="") {return(TRUE)} else {return(FALSE)} })
   
   if ( (length(dFile) > 0)&&(!all(is.empty)) ) {
@@ -88,7 +95,7 @@ runFile <- function(x) {
     }))
     orderCounter <- sum(orderCounter)
     
-    # Later on, orderCounter must match the number of order timestamps extracted.
+    # (Later on, orderCounter must match the number of order timestamps extracted.)
     
     # Cleaning up unnecessary commas:
     
@@ -110,7 +117,7 @@ runFile <- function(x) {
            length(orderTimes), "  extracted in ", fileDate, " (dateSequence[", 
            match(format(fileDate,"%Y%m%d"),dateSequence), "])") }
     
-    # Removing elements containing timestamps (all of them end in "HH:MM"):
+    # Removing elements containing timestamps (all of them end in ":MM"):
     
     dFile <- unname(sapply(dFile, function(x) { gsub(".*:[[:digit:]]{2}$", "", x) }))
     dFile <- dFile[dFile != ""]
@@ -141,12 +148,13 @@ runFile <- function(x) {
     # stop("~ DEBUGGING STOP ~ ~")
     
     # Renaming nastily named modifier "9,Decaf#!!$/%/" and removing dollar signs:
+    
     dFile <- unname(sapply(dFile, function(x) { gsub('#!!\\$/%/', '', x) }))
     dFile <- unname(sapply(dFile, function(x) { gsub("\\$", "", x) }))
 
     # Converting the rare non-sequential orders' numbers into regular order numbers: 
     # instead of "orderNumber,digit(s)", use just "orderNumber". (The non-sequential orders are normal/completed, 
-    # just recorded differently and outside temporal order; no need to keep them in this format).
+    # just recorded differently and outside temporal order; no need to keep them in this format.)
     
     dFile <- unname(sapply(dFile, function(x) { gsub(",[[:digit:]]+$", "", x) }))
     
@@ -155,18 +163,21 @@ runFile <- function(x) {
     dFile <- unname(sapply(dFile, function(x) { gsub("^([^,]*,)|,", "\\1", x) }))
     
     # Removing brackets and colons too:
+    
     dFile <- unname(sapply(dFile, function(x) { gsub("\\(|\\)|\\:\\:", "", x) }))
     
     # A rare issue is caused by "sales notes" that accompany orders where non-taxable items were ordered.
     # Some files (dateSequence[21], dateSequence[85]) had random words 
     # "grillee-cheres employee" as one of the lines (after "open item").
     # Safeguarding against these by removing all elements that contain ONLY words:
+    
     wordsOnly <- unname(sapply(dFile, function(x) { grepl("(^[[:alpha:]]+|[[:punct:]]+$)|(\\<certificats\\>)", x) }))
     dFile <- dFile[!wordsOnly]
     
     # Unfortunately, it's not possible to completely get rid of these using regex.
-    # in dateSequence[405] the words are an item name starting with digits and containing "/".
-    # in dateSequence[422] it's ".pp". A crude but easy solution is to drop these two manually:
+    # In file for dateSequence[405] the words are an item name starting with digits and containing "/".
+    # In file for dateSequence[422] it's ".pp". A crude but easy solution is to drop these two manually:
+    
     if (fileDate=="2017-10-10") { dFile <- dFile[-434] }
     if (fileDate=="2017-10-27") { dFile <- dFile[-356] }
     
@@ -223,8 +234,9 @@ runFile <- function(x) {
 
 # FUNCTION CALL --------------------------------------------------------------------------------------
 
-  # Making a vector sequence of dates for the daily sales files that are available,
-  # and formatting to match how files are named by the cash register.
+  # Making a vector sequence of dates for the daily sales files that are available
+  # and formatting to match how files are named by the cash register:
+
   dateSequence <- seq(from = as.Date("2016-09-01"),
                       to = as.Date("2017-11-22"),
                       by = "days")
@@ -233,13 +245,22 @@ runFile <- function(x) {
   # Reference code for debugging:
   # runFile(dateSequence[])      # debugging a specific file
   # match("", dateSequence)      # matching a date with dateSequence
-
-  sapply(dateSequence, runFile)  # 166.28 sec elapsed
-
-# It takes a few minutes to make the 764KB file with 27,562 rows. 
+  
+  tic("Function call: what's on the menu?")
+  
+    sapply(dateSequence, runFile) 
+  
+  toc()
+  
+  # 151.16 sec elapsed to make the 757KB file with 27,558 rows.
+  # "0-all-unique-items.csv" contains unique items recorded in each of the 448 files.
+  # Now we'll pick out items that are unique in this file, and use this file to manually discriminate
+  # between menu items and menu item modifiers.
 
 # FINAL OUTPUT: MAKING A FILE CONTAINING UNIQUE MENU ITEMS & MODIFIERS ACROSS 448 FILES --------------
 
+tic("Producing final output")
+  
 output <- read.csv("0-all-unique-items.csv")
 
 output <- output %>% 
@@ -248,11 +269,13 @@ output <- output %>%
 
 write.csv(unique(output), "0-menu-items-and-modifiers.csv", row.names=FALSE)
 
-# This makes an 8KB file with 279 menu items & modifiers. 
+toc()
+
+# This makes a 7.5KB file with 277 menu items & modifiers. 
 #
 # The file also includes frequencies for how often items feature in the data (1 under "Frequency" 
 # would mean the item was sold on one day). Frequencies will be helpful for understanding duplicate 
-# items (typos in the cash register system--there are a few--or promotional items). 
+# items (typos in the cash register system--I spotted a few already--or promotional items). 
 #
 # The file will be edited manually to make a distinction between menu items and menu item modifiers.
 # Resultant data frame will be used to build a proper data frame of items ordered.
@@ -281,14 +304,16 @@ write.csv(unique(output), "0-menu-items-and-modifiers.csv", row.names=FALSE)
 # 
 # (0) dateSequence[329] (file "2017-07-26") missing; requested & received from client
 # 
-# (1) in 2017-06-17, 2016-09-17, 2016-09-13: strsplit by comma in unique item names bit broken by commas in item descriptions
-# examples:   "98,Coffee pot (185g = 2,5L)"    "65,Pen 0,7mm"    "64,Pen 0,5mm"
+# (1) in 2017-06-17, 2016-09-17, 2016-09-13: strsplit by comma in unique item names bit broken by 
+# commas in item descriptions. Examples:   
+# "98,Coffee pot (185g = 2,5L)"    "65,Pen 0,7mm"    "64,Pen 0,5mm"
 #
 # (2) Christmas holidays ("2016-12-24" = dateSequence[115] , 116, 121, 122, ...): shop closed => 0 order rows
 # 
-# (3) table number appears randomly right after order number (extremely rare)
-# in two files only, "2017-03-13" : dateSequence[194] ("1340" after order #107) and 
-#                    "2017-09-29" : dateSequence[394] ("930" after order #39 Cancelled)
+# (3) table number appears randomly right after order number (extremely rare) - unclear why, the shop
+# doesn't use table numbers. Happens in two files only,
+#     "2017-03-13" : dateSequence[194] ("1340" after order #107) and 
+#     "2017-09-29" : dateSequence[394] ("930" after order #39 Cancelled)
 #
 # (4) in 2017-09-29, order #127, item number 0 appears w/ no description and 0 for price
 
@@ -303,4 +328,4 @@ write.csv(unique(output), "0-menu-items-and-modifiers.csv", row.names=FALSE)
 # then continued starting with 1, and carried on with 13 thru 107. This doesn't pose a problem for 
 # this part of the project, and likely not in the future either (orders have both numeric IDs *and*
 # timestamps that identify them). This doesn't happen in ANY other file. Given this, checking for this
-# condition was disabled in this script for now (see lines 137-142).
+# condition was disabled in this script for now (see line 196).

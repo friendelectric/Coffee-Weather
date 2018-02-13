@@ -4,13 +4,15 @@ library(stringi)
 setwd('C:/Coffee and Weather Code/data')
 
 # # DESCRIPTION --------------------------------------------------------------------------------------
-# ~ ~ ~ ~ ~ ~ 
+# ~ ~ ~ ~ ~ ~ ~
+#                GENERATING A DATA FRAME OF ALL ORDERS COMPELETED AT THE CAFE
+#
 # This second script in the project creates a data frame of all orders available within the files.
 # The goals of this script are to:
 #
-#  (1) create a vector of all lines within a daily sales file via wrangling procedure from script 1
-#  (2) create a data frame of that day's orders, including cancelled and refunded orders
-#  (3) create a data frame of all completed orders, having dropped cancelled and refunded orders
+#  (1) create a vector of all lines within a daily sales file via wrangling procedure from script 1,
+#  (2) create a data frame of that day's orders, including cancelled and refunded orders, and
+#  (3) create a data frame of all completed orders, having dropped cancelled and refunded orders.
 #            ~ ~ ~
 
 # # FUNCTION: READ & WRANGLE A DAILY SALES FILE, GENERATE & EXPORT DATA FRAME OF ORDERS --------------
@@ -180,27 +182,26 @@ runFile <- function(x) {
   
   sapply(dateSequence, runFile)
 
-# This generates a 5.35MB CSV file containing all orders made at the coffee shop on days marked
-# in the dateSequence vector. There is a total of 70,183 orders recorded, including cancelled and
-# refunded orders.
+  # This generates "0-all-orders.csv" containing all orders made at the cafe 
+  # on days marked in the dateSequence vector.
 
 # = FINAL OUTPUT ===================================================================================
 
   orders <- read.csv("0-all-orders.csv")
   orders <- orders[-1]
 
-#  sum(orders$discardLater) via console shows a total of 786 orders were cancelled or refunded.
-# sum(!orders$discardLater) via console shows a total of 69,397 orders were completed, and hence 
-# will be kept for analysis. Now, dropping the observations for cancelled and refunded orders (just
-# over 1% of all orders recorded), as well as the discardLater column itself and saving into a file.
+  sum(orders$discardLater)
+  sum(!orders$discardLater)
+  sum(orders$discardLater)/nrow(orders)*100
+  
+  # 786 orders (a little over 1%) were cancelled or refunded and 69,397 orders were completed.
+  
+  # Dropping the observations for cancelled and refunded orders, as well as the discardLater column,
+  # and saving into a file:
 
   orders <- orders[!orders$discardLater, ]
   orders <- orders[-3]
   
   write.csv(orders, file = "0-all-completed-orders.csv", row.names=FALSE)
 
-# This generates a 4.37MB CSV file with all 69,397 actual sales made from 2016-09-01 to 2017-11-12.
-#
-# (The difference compared to the previously generated file is about 1MB. Obviously, the dropped 
-# observations wouldn't take up that much space. In effect, this final file is significantly smaller 
-# because it drops an unnecessary column of row names.)
+  # This generates a 4.35MB CSV file with all 69,397 actual sales made from 2016-09-01 to 2017-11-12.
