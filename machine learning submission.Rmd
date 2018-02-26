@@ -1,0 +1,8 @@
+---
+title: "Machine learning submission"
+output: html_document
+---
+
+I applied machine learning in my [statistical analysis submission](https://github.com/friendelectric/Coffee-Weather/blob/master/capstone-statistical-analysis-submission.docx) (see section titled “Cross-validation”).
+
+I used leave-one-out cross-validation to compare three linear models predicting sales of cold drinks.
