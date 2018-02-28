@@ -2,21 +2,17 @@
 
 ## Files:
 
-[Dataset](CafeHourly.csv)
+* [Dataset](CafeHourly.csv)
 
-Capstone Final Report:
+* Capstone Final Report ([pdf](capstone-final.pdf), [Rmd](capstone-final.Rmd))
 
-* [pdf](capstone-final.pdf)
+* [Capstone Slide Deck](capstone-slide-deck.pdf)
 
-* [Rmd](capstone-final.Rmd)
+* Raw data:
 
-[Capstone Slide Deck](capstone-slide-deck.pdf)
+  + [Sample file](sample-raw-file.csv) illustrating the raw proprietary data files
 
-Raw data:
-
-* [Sample file](sample-raw-file.csv) illustrating the raw proprietary data files
-
-* [Weather data](hourly_airport.csv)
+  + [Weather data](hourly_airport.csv)
 
 ## Data wrangling scripts
 
