@@ -14,7 +14,7 @@ Capstone Final Report:
 
 [Sample file](sample-raw-file.csv) illustrating the raw proprietary data files
 
-1. [Learn what’s on the menu and put it into a reference table](<1 extract menu items and modifiers.R>)
+1. [Learn what’s on the menu and put it into a reference table](<1%20extract%20menu%20items%20and%20modifiers.R>)
 
 2. [Extract data on all orders completed at the café into a data frame](<2 extract orders.R>)
 
