@@ -2,6 +2,8 @@
 
 ## Files:
 
+[Dataset](CafeHourly.csv)
+
 Capstone Final Report:
 
 * [pdf](capstone-final.pdf)
