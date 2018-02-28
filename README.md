@@ -1,6 +1,6 @@
 # The Melbourne Deconstruction
 
-## Capstone Project for Intro to Data Science
+## Capstone Project for Springboard's Intro to Data Science
 
 ### Files
 
