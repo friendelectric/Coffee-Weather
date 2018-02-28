@@ -10,7 +10,7 @@
 
 * Raw data:
 
-  + [Sample file](sample-raw-file.csv) illustrating the raw proprietary data files
+  + [Mock sales data file](sample-raw-file.csv)
 
   + [Weather data](hourly_airport.csv)
 
