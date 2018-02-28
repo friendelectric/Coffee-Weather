@@ -16,7 +16,7 @@ Raw data:
 
 * [Sample file](sample-raw-file.csv) illustrating the raw proprietary data files
 
-* [hourly_airport.csv](Weather data)
+* [Weather data](hourly_airport.csv)
 
 ## Data wrangling scripts
 
