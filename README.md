@@ -8,7 +8,7 @@ Capstone Final Report:
 
 * [Rmd](capstone-final.Rmd)
 
-[Capstone Slide Deck](capstone-slide-deck.pptx)
+[Capstone Slide Deck](capstone-slide-deck.pdf)
 
 ## Data wrangling scripts
 
