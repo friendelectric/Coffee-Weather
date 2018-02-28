@@ -4,9 +4,9 @@
 
 * [Dataset](CafeHourly.csv)
 
-* Capstone Final Report ([pdf](capstone-final.pdf), [Rmd](capstone-final.Rmd))
+* Capstone final report ([pdf](capstone-final.pdf), [Rmd](capstone-final.Rmd))
 
-* [Capstone Slide Deck](capstone-slide-deck.pdf)
+* [Capstone slide deck](capstone-slide-deck.pdf)
 
 * Raw data:
 
