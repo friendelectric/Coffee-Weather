@@ -12,9 +12,13 @@ Capstone Final Report:
 
 [Capstone Slide Deck](capstone-slide-deck.pdf)
 
-## Data wrangling scripts
+Raw data:
 
-[Sample file](sample-raw-file.csv) illustrating the raw proprietary data files
+* [Sample file](sample-raw-file.csv) illustrating the raw proprietary data files
+
+* [hourly_airport.csv](Weather data)
+
+## Data wrangling scripts
 
 1. [Learn what’s on the menu and put it into a reference table](<1%20extract%20menu%20items%20and%20modifiers.R>)
 
