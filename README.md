@@ -1,6 +1,8 @@
-# The Melbourne Deconstruction: Capstone Project for Intro to Data Science
+# The Melbourne Deconstruction
 
-## Files:
+## Capstone Project for Intro to Data Science
+
+### Files
 
 * [Dataset](CafeHourly.csv)
 
@@ -14,7 +16,7 @@
 
   + [Weather data](hourly_airport.csv)
 
-## Data wrangling scripts
+### Data wrangling scripts
 
 1. [Learn what’s on the menu and put it into a reference table](<1%20extract%20menu%20items%20and%20modifiers.R>)
 
